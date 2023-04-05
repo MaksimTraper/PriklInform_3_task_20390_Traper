@@ -367,7 +367,6 @@ def Select_func():
     # применение функции сравнения двух файлов
     Charts_Selected_func(filename1, filename2)
 
-
 # функция показа результатов
 def ResultsShow_func(text):
     msg = text
