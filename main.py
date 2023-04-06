@@ -1,4 +1,6 @@
 # импорт библиотек
+import os
+
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
@@ -10,6 +12,7 @@ from skimage import io, measure, transform, metrics
 from skimage.measure import block_reduce
 import time
 import fawkes
+from os.path import dirname as up
 
 def delay():
     sec = float(timedelay3.get())
@@ -269,28 +272,31 @@ def Charts_build_func(num_e, start_pos, step, intermed_pos, ch_func):
     x_r_dct = np.arange(1, len(stat_dct) + 1)
     x_r_scale = np.arange(1, len(stat_scale) + 1)
 
-    x_r_g_ind = np.arange(len(stat_grad_indv_n))
-    x_r_h_ind = np.arange(len(stat_hist_indv_n))
-    x_r_dft_ind = np.arange(len(stat_dft_indv_n))
-    x_r_dct_ind = np.arange(len(stat_dct_indv_n))
-    x_r_scale_ind = np.arange(len(stat_scale_indv_n))
+    x_r_g_ind = np.arange(1, len(stat_grad_indv_n) + 1)
+    x_r_h_ind = np.arange(1, len(stat_hist_indv_n) + 1)
+    x_r_dft_ind = np.arange(1, len(stat_dft_indv_n) + 1)
+    x_r_dct_ind = np.arange(1, len(stat_dct_indv_n) + 1)
+    x_r_scale_ind = np.arange(1, len(stat_scale_indv_n) + 1)
     # статы
     # показ окон
+    figure1.canvas.manager.set_window_title('Эксперимент')
+    figure2.canvas.manager.set_window_title('Результаты экспериментов по тестовым')
+    figure3.canvas.manager.set_window_title('Результаты экспериментов по классам')
     figure1.show()
     figure2.show()
     figure3.show()
     # внутренний цикл - уровень 1
     for t in range(0, 10, 1):
         # корректировка окна 2
-        bxH.plot(x_r_h[0:t+2:1], stat_hist[0:t+2:1], color="yellow")
-        bxH.set_title('Гистограмма')
-        bxG.plot(x_r_g[0:t+2:1], stat_grad[0:t+2:1], color="yellow")
-        bxG.set_title('Градиент')
-        bxDFT.plot(x_r_dft[0:t+2:1], stat_dft[0:t+2:1], color="yellow")
+        bxH.plot(x_r_h[0:t+1:1], stat_hist[0:t+1:1], color="yellow")
+        bxH.set_title('Hist')
+        bxG.plot(x_r_g[0:t+1:1], stat_grad[0:t+1:1], color="yellow")
+        bxG.set_title('Grad')
+        bxDFT.plot(x_r_dft[0:t+1:1], stat_dft[0:t+1:1], color="yellow")
         bxDFT.set_title('DFT')
-        bxDCT.plot(x_r_dct[0:t+2:1], stat_dct[0:t+2:1], color="yellow")
+        bxDCT.plot(x_r_dct[0:t+1:1], stat_dct[0:t+1:1], color="yellow")
         bxDCT.set_title('DCT')
-        bxScale.plot(x_r_scale[0:t+2:1], stat_scale[0:t+2:1], color="yellow")
+        bxScale.plot(x_r_scale[0:t+1:1], stat_scale[0:t+1:1], color="yellow")
         bxScale.set_title('Scale')
         # внутренний цикл - уровень 2
         for p in range(num_e * t, num_e * t + num_e, 1):
@@ -359,13 +365,28 @@ def GetE_func(choosed_fun):
     else:
         tk.showerror("Ошибка!", "Должно быть введено целое положительное число!")
 
+def Cmp_choosed_photos():
+    filename1 = fd.askopenfilename()
+    filename2 = fd.askopenfilename()
+    Charts_Selected_func(filename1, filename2)
 
 # функция выбора изображений для сравнения
-def Select_func():
+def Cmp_masked_photo():
+    command = 'fawkes_binary_windows-v1.0 -d .\\'
     filename1 = fd.askopenfilename()
-    filename2 = fawkes.dump_image()
+    root_proj = os.getcwd()
+    rel_path = os.path.relpath(filename1, root_proj)
+    rel_path = up(rel_path)
+    d = up(up(filename1))
+    d = d + "/"
+    filename1 = filename1.replace(d, '')
+    command = command + rel_path + ' -m low'
+    os.system(command)
+    cloaked = filename1
+    cloaked = cloaked.replace('.jpg', '_low_cloaked.png')
+    cloaked = cloaked.replace('.pgm', '_low_cloaked.png')
     # применение функции сравнения двух файлов
-    Charts_Selected_func(filename1, filename2)
+    Charts_Selected_func(filename1, cloaked)
 
 # функция показа результатов
 def ResultsShow_func(text):
@@ -422,7 +443,7 @@ def Charts_Selected_func(filename1, filename2):
     # построение графиков
     # построение графика - эталон
     plt.subplot(3, 6, 13)
-    plt.imshow(e_or_img)
+    plt.imshow(e_or_img, cmap='gray')
     plt.title("Эталон")
 
     plt.subplot(3, 6, 14)
@@ -443,7 +464,7 @@ def Charts_Selected_func(filename1, filename2):
     plt.title("Градиент")
 
     plt.subplot(3, 6, 18)
-    plt.imshow(e_scale)
+    plt.imshow(e_scale, cmap='gray')
     plt.title("Scale")
 
     # построение графика - тест
@@ -469,7 +490,7 @@ def Charts_Selected_func(filename1, filename2):
     plt.title("Градиент")
 
     plt.subplot(3, 6, 6)
-    plt.imshow(t_scale)
+    plt.imshow(t_scale, cmap='gray')
     plt.title("Scale")
 
     # вывод результата
@@ -484,7 +505,7 @@ def Charts_Selected_func(filename1, filename2):
 # главное окно
 root = tk.Tk()
 root.title("Программа для моделирования систем распознавания людей по лицам")
-root.geometry("300x350")
+root.geometry("300x370")
 # поле для ввода кол-ва эталонов
 num_etalons_label = tk.Label(root, text="Количество эталонов:")
 num_etalons_label.pack()
@@ -499,7 +520,12 @@ plot_button.pack()
 # кнопка активации - произвольные
 select_files_label = tk.Label(root, text="Произвольное сравнение:")
 select_files_label.pack()
-plot_button = tk.Button(root, text="Выбрать и выполнить", command=Select_func)
+plot_button = tk.Button(root, text="Выбрать и выполнить", command=Cmp_choosed_photos)
+plot_button.pack()
+
+select_files_label = tk.Label(root, text="Маскировка и сравнение фотографии:")
+select_files_label.pack()
+plot_button = tk.Button(root, text="Выбрать и выполнить", command=Cmp_masked_photo)
 plot_button.pack()
 
 cross_val_lab = tk.Label(root, text="Кросс-Валидация")
@@ -509,13 +535,13 @@ plot_button2.pack()
 plot_button3 = tk.Button(root, text="Четные эталоны", command= lambda :GetE_func(int(2)))
 plot_button3.pack()
 
-delta1 = tk.Label(root, text='Лимит разницы для гистограммы')
+delta1 = tk.Label(root, text='Пороговое значение гистограммы')
 delta1.pack()
 delta1out = tk.Entry(root)
-delta1out.insert(0, '100') #значение по умолчанию
+delta1out.insert(0, '250') #значение по умолчанию
 delta1out.pack()
 
-delta2 = tk.Label(root, text='Лимит разницы для градиента')
+delta2 = tk.Label(root, text='Пороговое значение градиента')
 delta2.pack()
 delta2out = tk.Entry(root)
 delta2out.insert(0, '80') #значение по умолчанию
